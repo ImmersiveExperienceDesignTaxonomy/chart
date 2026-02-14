@@ -94,7 +94,7 @@ export class SceneManager {
     } catch { /* ignore corrupt data */ }
   }
 
-  _createGitHubSprite() {
+  _createGitHubSprite(fillColor = '#ffffff') {
     const size = 128;
     const canvas = document.createElement('canvas');
     canvas.width = size;
@@ -112,12 +112,32 @@ export class SceneManager {
       ' 6.2 16.1 0 23-14 28-27.3 29.5 2.2 1.8 4 5.4 4 10.9 0 7.9-.1 14.2-.1' +
       ' 16.2 0 1.6 1.1 3.5 4.1 2.9A61 61 0 0 0 125 65C125 31.1 97.9 4 64 4Z',
     );
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = fillColor;
     ctx.fill(path);
 
+    this._githubCanvas = canvas;
     const texture = new THREE.CanvasTexture(canvas);
     const mat = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false, opacity: 0.4 });
     return new THREE.Sprite(mat);
+  }
+
+  updateGitHubIconColor(fillColor) {
+    const canvas = this._githubCanvas;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const path = new Path2D(
+      'M64 4C30.1 4 3 31.1 3 65c0 27 17.5 49.9 41.8 58 3 .6 4.2-1.3 4.2-2.9' +
+      ' 0-1.5-.1-6.2-.1-11.3-15.4 2.8-19.5-3.7-20.7-7.1-0.7-1.8-3.7-7.1-6.3-8.5' +
+      '-2.2-1.2-5.2-4-.1-4.1 4.8-.1 8.2 4.4 9.3 6.2 5.4 9.1 14.1 6.6 17.6 5' +
+      ' .5-3.9 2.1-6.6 3.8-8.1-13.3-1.5-27.2-6.6-27.2-29.5 0-6.5 2.3-11.9' +
+      ' 6.2-16.1-.6-1.5-2.7-7.6.6-15.9 0 0 5-1.6 16.5 6.2a57.3 57.3 0 0 1 30.1' +
+      ' 0c11.5-7.8 16.5-6.2 16.5-6.2 3.3 8.3 1.2 14.4.6 15.9 3.8 4.2 6.2 9.5' +
+      ' 6.2 16.1 0 23-14 28-27.3 29.5 2.2 1.8 4 5.4 4 10.9 0 7.9-.1 14.2-.1' +
+      ' 16.2 0 1.6 1.1 3.5 4.1 2.9A61 61 0 0 0 125 65C125 31.1 97.9 4 64 4Z',
+    );
+    ctx.fillStyle = fillColor;
+    ctx.fill(path);
+    this._githubSprite.material.map.needsUpdate = true;
   }
 
   _updateHudLayout() {

@@ -17,9 +17,29 @@ const DEFAULT_COLORS = [
   '#8b5cf6', '#ec4899', '#06b6d4', '#ef4444', '#84cc16',
 ];
 
+// --- Theme ---
+
+function getInitialTheme() {
+  const stored = localStorage.getItem('theme');
+  if (stored === 'light' || stored === 'dark') return stored;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+let currentTheme = getInitialTheme();
+
+function applyThemeToDocument(theme) {
+  document.documentElement.classList.toggle('dark', theme === 'dark');
+  const icon = document.querySelector('#btn-theme i');
+  if (icon) {
+    icon.className = theme === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+  }
+}
+
+applyThemeToDocument(currentTheme);
+
 // --- State ---
 
-const profiles = new Map(); // id → { profile, colorHex }
+const profiles = new Map(); // id -> { profile, colorHex }
 const profileOrder = [];    // id[] — rendering & stacking order
 let activeProfileId = null;
 let chart = null;
@@ -35,6 +55,7 @@ const dimensionPanelEl = document.getElementById('dimension-panel');
 const btnAddProfile = document.getElementById('btn-add-profile');
 const btnShare = document.getElementById('btn-share');
 const btnExport = document.getElementById('btn-export');
+const btnTheme = document.getElementById('btn-theme');
 const sidebarToggle = document.getElementById('sidebar-toggle');
 const sidebar = document.getElementById('sidebar');
 const sidebarBackdrop = document.getElementById('sidebar-backdrop');
@@ -44,6 +65,7 @@ const sidebarBackdrop = document.getElementById('sidebar-backdrop');
 chart = new TaxonomyChart(chartContainer, {
   showLabels: false,
   editable: true,
+  theme: currentTheme,
   onChange(id, scores) {
     const entry = profiles.get(id);
     if (!entry) return;
@@ -51,6 +73,16 @@ chart = new TaxonomyChart(chartContainer, {
     if (id === activeProfileId) renderDimensionPanel(id);
     updateHash();
   },
+});
+
+// --- Theme toggle ---
+
+btnTheme.addEventListener('click', () => {
+  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  applyThemeToDocument(currentTheme);
+  chart.theme = currentTheme;
+  localStorage.setItem('theme', currentTheme);
+  renderDimensionPanel(activeProfileId);
 });
 
 // --- Profile management ---
@@ -108,17 +140,21 @@ function selectProfile(id) {
 
 // --- Sidebar rendering ---
 
+function isDark() {
+  return currentTheme === 'dark';
+}
+
 function renderProfileList() {
   profileListEl.innerHTML = '';
   for (const id of profileOrder) {
     const { profile, colorHex } = profiles.get(id);
     const isActive = id === activeProfileId;
     const item = document.createElement('div');
-    item.className = `profile-item flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-900 ${isActive ? 'active' : ''}`;
+    item.className = `profile-item flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-900 ${isActive ? 'active' : ''}`;
     item.draggable = true;
     item.dataset.profileId = id;
     item.innerHTML = `
-      <i class="fa-solid fa-grip-vertical text-xs text-gray-600 cursor-grab drag-handle shrink-0"></i>
+      <i class="fa-solid fa-grip-vertical text-xs text-gray-400 dark:text-gray-600 cursor-grab drag-handle shrink-0"></i>
       <input
         type="color"
         value="${colorHex}"
@@ -126,13 +162,13 @@ function renderProfileList() {
         title="Change color"
       />
       <span class="flex-1 text-sm font-medium truncate">${escapeHtml(profile.name)}</span>
-      <button class="rename-btn p-1 rounded hover:bg-gray-700 text-gray-400 hover:text-gray-200 transition-colors" title="Rename">
+      <button class="rename-btn p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors" title="Rename">
         <i class="fa-solid fa-pen text-xs"></i>
       </button>
-      <button class="dupe-btn p-1 rounded hover:bg-gray-700 text-gray-400 hover:text-gray-200 transition-colors" title="Duplicate">
+      <button class="dupe-btn p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors" title="Duplicate">
         <i class="fa-solid fa-clone text-xs"></i>
       </button>
-      <button class="delete-btn p-1 rounded hover:bg-gray-700 text-gray-400 hover:text-red-400 transition-colors" title="Delete">
+      <button class="delete-btn p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-red-400 transition-colors" title="Delete">
         <i class="fa-solid fa-trash text-xs"></i>
       </button>
     `;
@@ -226,6 +262,7 @@ function renderDimensionPanel(id) {
   dimensionPanelEl.innerHTML = '';
 
   const { profile, colorHex } = entry;
+  const inactiveTextColor = isDark() ? '#9ca3af' : '#6b7280';
 
   for (let d = 0; d < DIMENSION_COUNT; d++) {
     const dim = TAXONOMY_DIMENSIONS[d];
@@ -235,15 +272,15 @@ function renderDimensionPanel(id) {
     const activeCount = activeLevels.length;
 
     const row = document.createElement('div');
-    row.className = 'border-b border-gray-800/50';
+    row.className = 'border-b border-gray-200/50 dark:border-gray-800/50';
 
     const header = document.createElement('button');
-    header.className = 'flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-900/50 transition-colors';
+    header.className = 'flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-100/50 dark:hover:bg-gray-900/50 transition-colors';
     header.innerHTML = `
-      <i class="fa-solid fa-chevron-right text-[10px] text-gray-500 transition-transform ${isExpanded ? 'rotate-90' : ''}" style="width: 10px"></i>
-      <i class="${dim.icon} text-xs text-gray-400 w-4 text-center"></i>
-      <span class="text-xs font-medium text-gray-300 flex-1 text-left">${dim.name}</span>
-      <span class="text-[10px] text-gray-500">${activeCount}/${MAX_SCORE}</span>
+      <i class="fa-solid fa-chevron-right text-[10px] text-gray-400 dark:text-gray-500 transition-transform ${isExpanded ? 'rotate-90' : ''}" style="width: 10px"></i>
+      <i class="${dim.icon} text-xs text-gray-500 dark:text-gray-400 w-4 text-center"></i>
+      <span class="text-xs font-medium text-gray-700 dark:text-gray-300 flex-1 text-left">${dim.name}</span>
+      <span class="text-[10px] text-gray-400 dark:text-gray-500">${activeCount}/${MAX_SCORE}</span>
     `;
     header.addEventListener('click', () => {
       if (expandedDims.has(d)) expandedDims.delete(d);
@@ -265,7 +302,8 @@ function renderDimensionPanel(id) {
       baselineCheckbox.disabled = true;
       baselineCheckbox.className = 'shrink-0';
       const baselineText = document.createElement('span');
-      baselineText.className = 'text-xs text-gray-400';
+      baselineText.className = 'text-xs';
+      baselineText.style.color = inactiveTextColor;
       baselineText.textContent = dim.levels[0];
       baselineLabel.appendChild(baselineCheckbox);
       baselineLabel.appendChild(baselineText);
@@ -284,7 +322,7 @@ function renderDimensionPanel(id) {
 
         const text = document.createElement('span');
         text.className = 'text-xs';
-        text.style.color = isActive ? colorHex : '#9ca3af';
+        text.style.color = isActive ? colorHex : inactiveTextColor;
         text.textContent = dim.levels[l];
 
         checkbox.addEventListener('change', () => {
@@ -397,7 +435,7 @@ function showToast(message) {
   if (existing) existing.remove();
 
   const toast = document.createElement('div');
-  toast.className = 'toast fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-gray-800 text-sm rounded-lg shadow-lg z-50';
+  toast.className = 'toast fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-gray-800 dark:bg-gray-800 text-white text-sm rounded-lg shadow-lg z-50';
   toast.textContent = message;
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 2000);

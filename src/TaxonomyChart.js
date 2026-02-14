@@ -12,28 +12,60 @@ import { paletteColor } from './utils/colors.js';
 const HOVER_EMISSIVE_BOOST = 0.45;
 const GHOST_HOVER_OPACITY = 0.15;
 
+const DARK_THEME = {
+  gridColor: 0x555555,
+  gridOpacity: 0.5,
+  spokeColor: 0x444444,
+  spokeOpacity: 0.35,
+  labelColor: '#ccc',
+  tooltipBg: 'rgba(0, 0, 0, 0.88)',
+  tooltipText: '#fff',
+  animDarkColor: 0x222222,
+  githubIconFill: '#ffffff',
+};
+
+const LIGHT_THEME = {
+  gridColor: 0xaaaaaa,
+  gridOpacity: 0.6,
+  spokeColor: 0xbbbbbb,
+  spokeOpacity: 0.4,
+  labelColor: '#444',
+  tooltipBg: 'rgba(255, 255, 255, 0.92)',
+  tooltipText: '#111',
+  animDarkColor: 0xcccccc,
+  githubIconFill: '#111111',
+};
+
 export class TaxonomyChart {
   /**
    * @param {HTMLElement} container
-   * @param {{ showLabels?: boolean, editable?: boolean, onChange?: (id: number, scores: number[][]) => void }} options
+   * @param {{ showLabels?: boolean, editable?: boolean, theme?: 'light' | 'dark', onChange?: (id: number, scores: number[][]) => void }} options
    */
   constructor(container, options = {}) {
     this._sceneManager = new SceneManager(container);
     this._shapes = new Map();
     this._profileCount = 0;
+    this._theme = options.theme === 'light' ? 'light' : 'dark';
+    const themeConfig = this._theme === 'light' ? LIGHT_THEME : DARK_THEME;
 
     // Grid
-    const grid = createRadarGrid();
-    this._sceneManager.scene.add(grid);
+    this._gridGroup = createRadarGrid({
+      gridColor: themeConfig.gridColor,
+      gridOpacity: themeConfig.gridOpacity,
+      spokeColor: themeConfig.spokeColor,
+      spokeOpacity: themeConfig.spokeOpacity,
+    });
+    this._sceneManager.scene.add(this._gridGroup);
 
     // Labels
-    this._labels = createAxisLabels();
+    this._labels = createAxisLabels({ labelColor: themeConfig.labelColor });
     for (const label of this._labels) {
       this._sceneManager.scene.add(label);
     }
 
     // Animator
     this._animator = new Animator(this._sceneManager);
+    this._animator.darkColor = themeConfig.animDarkColor;
 
     // Label visibility
     this._showLabels = options.showLabels ?? true;
@@ -66,6 +98,11 @@ export class TaxonomyChart {
     this._cellTooltip = this._createCellTooltip();
     this._onShapeHover = this._onShapeHover.bind(this);
     this._sceneManager.renderer.domElement.addEventListener('pointermove', this._onShapeHover);
+
+    // Apply non-default theme to elements created with hardcoded defaults (GitHub icon, tooltips)
+    if (this._theme === 'light') {
+      this._applyTheme();
+    }
   }
 
   get editable() {
@@ -89,6 +126,49 @@ export class TaxonomyChart {
   set showLabels(value) {
     this._showLabels = value;
     this._applyLabelVisibility();
+  }
+
+  get theme() {
+    return this._theme;
+  }
+
+  set theme(value) {
+    if (value !== 'light' && value !== 'dark') return;
+    if (value === this._theme) return;
+    this._theme = value;
+    this._applyTheme();
+  }
+
+  _applyTheme() {
+    const t = this._theme === 'light' ? LIGHT_THEME : DARK_THEME;
+
+    // Grid lines
+    for (const child of this._gridGroup.children) {
+      if (child.userData.gridRole === 'ring') {
+        child.material.color.setHex(t.gridColor);
+        child.material.opacity = t.gridOpacity;
+      } else if (child.userData.gridRole === 'spoke') {
+        child.material.color.setHex(t.spokeColor);
+        child.material.opacity = t.spokeOpacity;
+      }
+    }
+
+    // Axis labels
+    for (const label of this._labels) {
+      label.element.style.color = t.labelColor;
+    }
+
+    // Popover + cell tooltip
+    this._popoverEl.style.background = t.tooltipBg;
+    this._popoverEl.style.color = t.tooltipText;
+    this._cellTooltip.style.background = t.tooltipBg;
+    this._cellTooltip.style.color = t.tooltipText;
+
+    // GitHub icon
+    this._sceneManager.updateGitHubIconColor(t.githubIconFill);
+
+    // Animation dark color
+    this._animator.darkColor = t.animDarkColor;
   }
 
   _applyLabelVisibility() {

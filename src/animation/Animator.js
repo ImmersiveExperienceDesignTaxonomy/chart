@@ -10,7 +10,7 @@ const TOTAL_DURATION = WAVE_DURATION + PAUSE_DURATION + SETTLE_DURATION;
 const WAVE_MAX_SCALE = 3.0;
 const BUMP_SPAN = 0.3;
 const RADIAL_SPREAD = 0.15;
-const DARK_COLOR = new THREE.Color(0x222222);
+const DEFAULT_DARK_COLOR = new THREE.Color(0x222222);
 
 function easeOutCubic(t) {
   return 1 - Math.pow(1 - t, 3);
@@ -20,7 +20,12 @@ export class Animator {
   /** @param {import('../scene/SceneManager.js').SceneManager} sceneManager */
   constructor(sceneManager) {
     this._tweens = [];
+    this._darkColor = DEFAULT_DARK_COLOR;
     sceneManager.onTick((dt) => this._update(dt));
+  }
+
+  set darkColor(hexInt) {
+    this._darkColor = new THREE.Color(hexInt);
   }
 
   /**
@@ -38,11 +43,12 @@ export class Animator {
     const allSegments = createAllSegmentGeometries();
     const profileColor = shape.baseMaterial.color.clone();
     const profileEmissive = shape.baseMaterial.emissive.clone();
+    const darkColor = this._darkColor;
 
     const entries = allSegments.map(({ geometry, sector, level }, idx) => {
       const mat = shape.baseMaterial.clone();
-      mat.color.copy(DARK_COLOR);
-      mat.emissive.copy(DARK_COLOR);
+      mat.color.copy(darkColor);
+      mat.emissive.copy(darkColor);
       const mesh = new THREE.Mesh(geometry, mat);
       mesh.rotation.x = -Math.PI / 2;
       mesh.position.y = baseY;
@@ -74,8 +80,8 @@ export class Animator {
               mesh.visible = true;
               const intensity = Math.sin(localT * Math.PI);
               mesh.scale.z = WAVE_MAX_SCALE * intensity;
-              mesh.material.color.lerpColors(DARK_COLOR, profileColor, intensity);
-              mesh.material.emissive.lerpColors(DARK_COLOR, profileEmissive, intensity);
+              mesh.material.color.lerpColors(darkColor, profileColor, intensity);
+              mesh.material.emissive.lerpColors(darkColor, profileEmissive, intensity);
             } else {
               mesh.visible = false;
             }
@@ -91,8 +97,8 @@ export class Animator {
             if (needed) {
               mesh.visible = true;
               mesh.scale.z = settleT;
-              mesh.material.color.lerpColors(DARK_COLOR, profileColor, settleT);
-              mesh.material.emissive.lerpColors(DARK_COLOR, profileEmissive, settleT);
+              mesh.material.color.lerpColors(darkColor, profileColor, settleT);
+              mesh.material.emissive.lerpColors(darkColor, profileEmissive, settleT);
             } else {
               mesh.visible = false;
             }

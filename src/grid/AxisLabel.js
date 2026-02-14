@@ -8,15 +8,16 @@ const LABEL_OFFSET = 0.6;
 /**
  * Create CSS2DObject labels for all 9 axes.
  * Each label renders a Font Awesome icon + dimension name.
+ * @param {{ labelColor?: string }} [options]
  * @returns {CSS2DObject[]}
  */
-export function createAxisLabels() {
+export function createAxisLabels({ labelColor = '#ccc' } = {}) {
   const labelRadius = MAX_SCORE * RADIUS_PER_LEVEL + LABEL_OFFSET;
 
   return TAXONOMY_DIMENSIONS.map((dim, i) => {
     const el = document.createElement('div');
     el.style.cssText =
-      'font-size: 12px; color: #ccc; white-space: nowrap; user-select: none; text-align: center; pointer-events: auto; cursor: default;';
+      `font-size: 12px; color: ${labelColor}; white-space: nowrap; user-select: none; text-align: center; pointer-events: auto; cursor: default;`;
 
     const icon = document.createElement('i');
     icon.className = dim.icon;

@@ -2,9 +2,6 @@ import * as THREE from 'three';
 import { DIMENSION_COUNT, MAX_SCORE } from '../data/TaxonomyDimensions.js';
 import { polarToCartesian } from '../utils/polar.js';
 
-const GRID_COLOR = 0x555555;
-const SPOKE_COLOR = 0x444444;
-
 /**
  * Unit radius per score level — each concentric ring sits at level * RADIUS_PER_LEVEL.
  */
@@ -14,8 +11,14 @@ export const RADIUS_PER_LEVEL = 1;
  * Build concentric nonagon rings (levels 1–4) and 9 axis spokes on the XZ plane.
  * Returns a Group to add to the scene.
  */
-export function createRadarGrid() {
+export function createRadarGrid({
+  gridColor = 0x555555,
+  gridOpacity = 0.5,
+  spokeColor = 0x444444,
+  spokeOpacity = 0.35,
+} = {}) {
   const group = new THREE.Group();
+  group.userData.type = 'radarGrid';
 
   // Concentric rings
   for (let level = 1; level <= MAX_SCORE; level++) {
@@ -27,8 +30,10 @@ export function createRadarGrid() {
       points.push(new THREE.Vector3(x, 0, z));
     }
     const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    const material = new THREE.LineBasicMaterial({ color: GRID_COLOR, transparent: true, opacity: 0.5 });
-    group.add(new THREE.Line(geometry, material));
+    const material = new THREE.LineBasicMaterial({ color: gridColor, transparent: true, opacity: gridOpacity });
+    const line = new THREE.Line(geometry, material);
+    line.userData.gridRole = 'ring';
+    group.add(line);
   }
 
   // Axis spokes
@@ -39,8 +44,10 @@ export function createRadarGrid() {
       new THREE.Vector3(0, 0, 0),
       new THREE.Vector3(x, 0, z),
     ]);
-    const material = new THREE.LineBasicMaterial({ color: SPOKE_COLOR, transparent: true, opacity: 0.35 });
-    group.add(new THREE.Line(geometry, material));
+    const material = new THREE.LineBasicMaterial({ color: spokeColor, transparent: true, opacity: spokeOpacity });
+    const line = new THREE.Line(geometry, material);
+    line.userData.gridRole = 'spoke';
+    group.add(line);
   }
 
   return group;
