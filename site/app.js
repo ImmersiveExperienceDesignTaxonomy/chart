@@ -228,14 +228,14 @@ function renderDimensionPanel(id) {
 
     // Baseline (level 0) — read-only unchecked
     const baselineLabel = document.createElement('label');
-    baselineLabel.className = 'level-checkbox flex items-center gap-2 py-0.5 opacity-40';
+    baselineLabel.className = 'level-checkbox flex items-center gap-2 py-0.5 opacity-60';
     const baselineCheckbox = document.createElement('input');
     baselineCheckbox.type = 'checkbox';
     baselineCheckbox.checked = false;
     baselineCheckbox.disabled = true;
     baselineCheckbox.className = 'shrink-0';
     const baselineText = document.createElement('span');
-    baselineText.className = 'text-xs text-gray-500';
+    baselineText.className = 'text-xs text-gray-400';
     baselineText.textContent = dim.levels[0];
     baselineLabel.appendChild(baselineCheckbox);
     baselineLabel.appendChild(baselineText);
