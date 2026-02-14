@@ -77,7 +77,8 @@ new ExperienceProfile({
 |-------------------|-------------|
 | `addProfile(profile)` | Add an `ExperienceProfile` to the chart. |
 | `removeProfile(id)` | Remove a profile by id (animated). |
-| `updateProfile(id, scores)` | Replace a profile's scores (crossfade animation). Accepts either format. |
+| `updateProfile(id, scores, color?)` | Replace a profile's scores (crossfade animation). Accepts either format. Optional `color` overrides the hex color (e.g. `0xff6600`). |
+| `reorderProfiles(orderedIds)` | Reorder profile stacking by passing an array of profile IDs in bottom-to-top order. |
 | `clearProfiles()` | Remove all profiles. |
 | `chart.editable` | Get/set whether click editing is enabled. |
 | `chart.showLabels` | Get/set label text visibility. Icons enlarge when labels are hidden. |
@@ -101,6 +102,17 @@ Scores are stored as `number[][]` — an array of 10 sorted arrays, one per dime
 - `[]` — no levels active
 
 The `normalizeScores()` helper (also exported) converts between legacy integer format and the set-based format.
+
+## Chart Builder Site
+
+A hosted Chart Builder is available on GitHub Pages. It lets you create experience profiles, toggle dimension levels, and share via URL.
+
+```bash
+npm run dev:site    # Local dev server
+npm run build:site  # Build to docs/ for GitHub Pages
+```
+
+The site is served from the `docs/` directory on the `main` branch with a `/Chart/` base path.
 
 ## Peer Dependencies
 

@@ -3,7 +3,7 @@ import { SceneManager } from './scene/SceneManager.js';
 import { createRadarGrid } from './grid/RadarGrid.js';
 import { createAxisLabels } from './grid/AxisLabel.js';
 import { ExperienceProfile } from './data/ExperienceProfile.js';
-import { ExperienceShape, BASE_EMISSIVE_INTENSITY } from './shapes/ExperienceShape.js';
+import { ExperienceShape, BASE_EMISSIVE_INTENSITY, STACK_SPACING } from './shapes/ExperienceShape.js';
 import { Animator } from './animation/Animator.js';
 import { EditHandler } from './interaction/EditHandler.js';
 import { TAXONOMY_DIMENSIONS } from './data/TaxonomyDimensions.js';
@@ -279,15 +279,16 @@ export class TaxonomyChart {
   /**
    * @param {number} id
    * @param {number[][] | number[]} newScores
+   * @param {number} [color]  Optional hex color override (e.g. 0xff6600)
    */
-  updateProfile(id, newScores) {
+  updateProfile(id, newScores, color) {
     const oldShape = this._shapes.get(id);
     if (!oldShape) return;
 
     const updatedProfile = new ExperienceProfile({
       name: oldShape.profile.name,
       scores: newScores,
-      color: oldShape.profile.color,
+      color: color ?? oldShape.profile.color,
     });
     // Preserve the original id so the map key stays consistent
     updatedProfile.id = oldShape.profile.id;
@@ -301,6 +302,18 @@ export class TaxonomyChart {
 
     this._sceneManager.scene.add(newShape.mesh);
     this._shapes.set(id, newShape);
+  }
+
+  /**
+   * @param {number[]} orderedIds  Profile IDs in desired bottom-to-top stack order
+   */
+  reorderProfiles(orderedIds) {
+    for (let i = 0; i < orderedIds.length; i++) {
+      const shape = this._shapes.get(orderedIds[i]);
+      if (!shape) continue;
+      shape.stackIndex = i;
+      shape.mesh.position.y = i * STACK_SPACING;
+    }
   }
 
   clearProfiles() {

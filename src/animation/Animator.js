@@ -47,6 +47,7 @@ export class Animator {
       mesh.rotation.x = -Math.PI / 2;
       mesh.position.y = baseY;
       mesh.scale.z = 0;
+      mesh.visible = false;
       group.add(mesh);
       return { mesh, sector, level, idx };
     });
@@ -70,32 +71,30 @@ export class Animator {
             const localT = dist / BUMP_SPAN + 0.5;
 
             if (localT > 0 && localT < 1) {
+              mesh.visible = true;
               const intensity = Math.sin(localT * Math.PI);
               mesh.scale.z = WAVE_MAX_SCALE * intensity;
               mesh.material.color.lerpColors(DARK_COLOR, profileColor, intensity);
               mesh.material.emissive.lerpColors(DARK_COLOR, profileEmissive, intensity);
             } else {
-              mesh.scale.z = 0;
-              mesh.material.color.copy(DARK_COLOR);
-              mesh.material.emissive.copy(DARK_COLOR);
+              mesh.visible = false;
             }
           }
         } else if (elapsed <= WAVE_DURATION + PAUSE_DURATION) {
           for (const { mesh } of entries) {
-            mesh.scale.z = 0;
-            mesh.material.color.copy(DARK_COLOR);
-            mesh.material.emissive.copy(DARK_COLOR);
+            mesh.visible = false;
           }
         } else {
           const settleT = easeOutCubic((elapsed - WAVE_DURATION - PAUSE_DURATION) / SETTLE_DURATION);
           for (const { mesh, sector, level } of entries) {
             const needed = targetScores[sector].includes(level);
             if (needed) {
+              mesh.visible = true;
               mesh.scale.z = settleT;
               mesh.material.color.lerpColors(DARK_COLOR, profileColor, settleT);
               mesh.material.emissive.lerpColors(DARK_COLOR, profileEmissive, settleT);
             } else {
-              mesh.scale.z = 0;
+              mesh.visible = false;
             }
           }
         }
