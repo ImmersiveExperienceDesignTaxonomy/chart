@@ -64,6 +64,41 @@ export function createShapeGeometry(scores) {
 }
 
 /**
+ * Build individual cell geometries for only the cells present in the given scores.
+ * Returns metadata per cell so each can be rendered as its own mesh.
+ *
+ * @param {number[]} scores
+ * @returns {{ geometry: THREE.ExtrudeGeometry, sector: number, level: number }[]}
+ */
+export function createCellGeometries(scores) {
+  const cells = [];
+  for (let i = 0; i < DIMENSION_COUNT; i++) {
+    const score = scores[i];
+    const fullLevels = Math.floor(score);
+    const frac = score - fullLevels;
+
+    for (let level = 1; level <= fullLevels; level++) {
+      cells.push({ geometry: buildRingSegment(i, level), sector: i, level });
+    }
+
+    if (frac > 0) {
+      const partialLevel = fullLevels + 1;
+      const innerR = (partialLevel - 1) * RADIUS_PER_LEVEL + RADIAL_GAP / 2;
+      const fullOuterR = partialLevel * RADIUS_PER_LEVEL - RADIAL_GAP / 2;
+      const partialOuterR = innerR + (fullOuterR - innerR) * frac;
+      if (partialOuterR > innerR) {
+        cells.push({
+          geometry: buildRingSegment(i, partialLevel, partialOuterR),
+          sector: i,
+          level: partialLevel,
+        });
+      }
+    }
+  }
+  return cells;
+}
+
+/**
  * Create individual segment geometries for every sector × level combination.
  * Used by the wave entrance animation to animate each "building" independently.
  *

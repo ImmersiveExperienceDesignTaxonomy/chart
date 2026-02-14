@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import { SceneManager } from './scene/SceneManager.js';
 import { createRadarGrid } from './grid/RadarGrid.js';
 import { createAxisLabels } from './grid/AxisLabel.js';
@@ -7,6 +8,8 @@ import { Animator } from './animation/Animator.js';
 import { EditHandler } from './interaction/EditHandler.js';
 import { TAXONOMY_DIMENSIONS, MAX_SCORE } from './data/TaxonomyDimensions.js';
 import { paletteColor } from './utils/colors.js';
+
+const HOVER_EMISSIVE_BOOST = 0.45;
 
 export class TaxonomyChart {
   /**
@@ -55,6 +58,12 @@ export class TaxonomyChart {
     if (this._editable) {
       this._initEditHandler();
     }
+
+    // Shape hover highlighting
+    this._hoverRaycaster = new THREE.Raycaster();
+    this._hoveredCellMesh = null;
+    this._onShapeHover = this._onShapeHover.bind(this);
+    this._sceneManager.renderer.domElement.addEventListener('pointermove', this._onShapeHover);
   }
 
   get editable() {
@@ -135,6 +144,33 @@ export class TaxonomyChart {
 
   setEditableProfile(id) {
     this._editableProfileId = id;
+  }
+
+  _onShapeHover(event) {
+    const rect = this._sceneManager.renderer.domElement.getBoundingClientRect();
+    const ndc = new THREE.Vector2(
+      ((event.clientX - rect.left) / rect.width) * 2 - 1,
+      -((event.clientY - rect.top) / rect.height) * 2 + 1,
+    );
+    this._hoverRaycaster.setFromCamera(ndc, this._sceneManager.camera);
+
+    const groups = [...this._shapes.values()]
+      .filter((s) => s.mesh.visible)
+      .map((s) => s.mesh);
+    const hits = this._hoverRaycaster.intersectObjects(groups, true);
+    const hitCellMesh = hits.length > 0 ? hits[0].object : null;
+
+    if (hitCellMesh === this._hoveredCellMesh) return;
+
+    if (this._hoveredCellMesh) {
+      this._hoveredCellMesh.material.emissiveIntensity = 0.25;
+      this._hoveredCellMesh = null;
+    }
+
+    if (hitCellMesh) {
+      hitCellMesh.material.emissiveIntensity = HOVER_EMISSIVE_BOOST;
+      this._hoveredCellMesh = hitCellMesh;
+    }
   }
 
   _initEditHandler() {
@@ -225,6 +261,7 @@ export class TaxonomyChart {
   }
 
   dispose() {
+    this._sceneManager.renderer.domElement.removeEventListener('pointermove', this._onShapeHover);
     this.clearProfiles();
     if (this._editHandler) {
       this._editHandler.dispose();

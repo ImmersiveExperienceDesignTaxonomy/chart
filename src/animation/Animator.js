@@ -36,11 +36,11 @@ export class Animator {
 
     const group = new THREE.Group();
     const allSegments = createAllSegmentGeometries();
-    const profileColor = shape.mesh.material.color.clone();
-    const profileEmissive = shape.mesh.material.emissive.clone();
+    const profileColor = shape.baseMaterial.color.clone();
+    const profileEmissive = shape.baseMaterial.emissive.clone();
 
     const entries = allSegments.map(({ geometry, sector, level }, idx) => {
-      const mat = shape.mesh.material.clone();
+      const mat = shape.baseMaterial.clone();
       mat.color.copy(DARK_COLOR);
       mat.emissive.copy(DARK_COLOR);
       const mesh = new THREE.Mesh(geometry, mat);
@@ -130,23 +130,27 @@ export class Animator {
   }
 
   /**
-   * Crossfade from old mesh to new mesh.
-   * @param {THREE.Mesh} oldMesh
-   * @param {THREE.Mesh} newMesh
-   * @param {() => void} onComplete  Called when old mesh can be removed.
+   * Crossfade from old group to new group.
+   * @param {THREE.Group} oldGroup
+   * @param {THREE.Group} newGroup
+   * @param {() => void} onComplete  Called when old group can be removed.
    */
-  crossfade(oldMesh, newMesh, onComplete) {
-    const oldOpacity = oldMesh.material.opacity;
-    const newOpacity = newMesh.material.opacity;
-    newMesh.material.opacity = 0;
+  crossfade(oldGroup, newGroup, onComplete) {
+    const setGroupOpacity = (group, opacity) => {
+      for (const child of group.children) {
+        child.material.transparent = true;
+        child.material.opacity = opacity;
+      }
+    };
+    setGroupOpacity(newGroup, 0);
 
     this._tweens.push({
       elapsed: 0,
       duration: CROSSFADE_DURATION,
       tick(t) {
         const e = easeOutCubic(t);
-        oldMesh.material.opacity = oldOpacity * (1 - e);
-        newMesh.material.opacity = newOpacity * e;
+        setGroupOpacity(oldGroup, 1 - e);
+        setGroupOpacity(newGroup, e);
       },
       onComplete,
     });
