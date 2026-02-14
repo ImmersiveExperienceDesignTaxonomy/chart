@@ -83,6 +83,7 @@ function removeProfile(id) {
   profileOrder.splice(profileOrder.indexOf(id), 1);
   if (activeProfileId === id) {
     activeProfileId = profileOrder.length > 0 ? profileOrder[0] : null;
+    if (activeProfileId != null) chart.setEditableProfile(activeProfileId);
   }
   renderProfileList();
   renderDimensionPanel(activeProfileId);
