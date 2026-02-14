@@ -56,6 +56,15 @@ chart = new TaxonomyChart(chartContainer, {
 // --- Profile management ---
 
 function nextColor() {
+  const usedColors = new Set([...profiles.values()].map((e) => e.colorHex));
+  for (let i = 0; i < DEFAULT_COLORS.length; i++) {
+    const c = DEFAULT_COLORS[(colorIndex + i) % DEFAULT_COLORS.length];
+    if (!usedColors.has(c)) {
+      colorIndex += i + 1;
+      return c;
+    }
+  }
+  // All palette colors in use — cycle anyway
   const c = DEFAULT_COLORS[colorIndex % DEFAULT_COLORS.length];
   colorIndex++;
   return c;
