@@ -18,7 +18,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "dev:site": "vite --config vite.site.config.js",
-    "build:site": "vite build --config vite.site.config.js"
+    "build:embed": "vite build --config vite.embed.config.js",
+    "build:site": "vite build --config vite.site.config.js && npm run build:embed"
   },
   "peerDependencies": {
     "three": ">=0.150.0"

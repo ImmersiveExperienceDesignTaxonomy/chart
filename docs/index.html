@@ -11,8 +11,8 @@
   />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = { darkMode: 'class' }</script>
-  <script type="module" crossorigin src="/chart/assets/index-DM-vyIGd.js"></script>
-  <link rel="stylesheet" crossorigin href="/chart/assets/index-DLayhJyZ.css">
+  <script type="module" crossorigin src="/chart/assets/index-BJ9p0Bf5.js"></script>
+  <link rel="stylesheet" crossorigin href="/chart/assets/index-CRcMosgS.css">
 </head>
 <body class="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 h-screen overflow-hidden flex flex-col">
   <!-- Header -->
@@ -53,6 +53,13 @@
         <i class="fa-solid fa-download"></i>
         <span class="hidden sm:inline">Export JSON</span>
       </button>
+      <button
+        id="btn-embed"
+        class="px-3 py-1.5 text-sm rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+      >
+        <i class="fa-solid fa-code"></i>
+        <span class="hidden sm:inline">Embed</span>
+      </button>
     </div>
   </header>
 
@@ -87,6 +94,66 @@
 
     <!-- Chart area -->
     <main id="chart-container" class="flex-1 min-w-0 relative bg-white dark:bg-gray-950"></main>
+  </div>
+
+  <!-- Embed dialog -->
+  <div id="embed-dialog" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+    <div id="embed-backdrop" class="absolute inset-0 bg-black/50"></div>
+    <div class="embed-panel relative bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-2xl mx-4 p-6">
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="text-lg font-semibold">Embed Chart</h2>
+        <button id="embed-close" class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Close">
+          <i class="fa-solid fa-xmark text-lg text-gray-500 dark:text-gray-400"></i>
+        </button>
+      </div>
+
+      <!-- Step 1 -->
+      <div class="embed-step flex gap-3 mb-5">
+        <div class="flex flex-col items-center shrink-0">
+          <div class="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center">1</div>
+          <div class="flex-1 w-px bg-gray-300 dark:bg-gray-600 mt-1.5"></div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium mb-2">Add this script to your <code class="text-xs bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">&lt;head&gt;</code> tag</p>
+          <div class="relative">
+            <textarea id="embed-step1" readonly rows="2" class="embed-code w-full px-3 py-2 pr-10 text-xs font-mono rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <button class="embed-copy-btn absolute top-1.5 right-1.5 w-7 h-7 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" data-target="embed-step1" title="Copy">
+              <i class="fa-solid fa-copy text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="embed-step flex gap-3">
+        <div class="flex flex-col items-center shrink-0">
+          <div class="w-6 h-6 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center">2</div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium mb-2">Place this element in your page</p>
+          <div class="flex items-center gap-4 mb-2">
+            <label class="flex items-center gap-2">
+              <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Theme</span>
+              <select id="embed-theme" class="px-2.5 py-1 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="">Auto (system)</option>
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+              </select>
+            </label>
+            <label class="flex items-center gap-2">
+              <input id="embed-labels" type="checkbox" class="accent-indigo-500" />
+              <span class="text-xs text-gray-700 dark:text-gray-300">Always show category names</span>
+            </label>
+          </div>
+          <div class="relative">
+            <textarea id="embed-step2" readonly rows="4" class="embed-code w-full px-3 py-2 pr-10 text-xs font-mono rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <button class="embed-copy-btn absolute top-1.5 right-1.5 w-7 h-7 flex items-center justify-center rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" data-target="embed-step2" title="Copy">
+              <i class="fa-solid fa-copy text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
 </body>

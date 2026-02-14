@@ -120,3 +120,26 @@ html:not(.dark) .profile-item.active {
   from { opacity: 1; }
   to { opacity: 0; }
 }
+
+/* Embed dialog */
+#embed-dialog:not(.hidden) {
+  animation: embed-fade-in 0.15s ease;
+}
+
+#embed-dialog:not(.hidden) .embed-panel {
+  animation: embed-slide-in 0.15s ease;
+}
+
+@keyframes embed-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes embed-slide-in {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.embed-code:focus {
+  user-select: all;
+}

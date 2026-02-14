@@ -6,11 +6,22 @@ import {
   MAX_SCORE,
 } from '../src/index.js';
 
-// --- Color helpers ---
+// --- Helpers ---
 
 function hexToInt(hex) {
   return parseInt(hex.slice(1), 16);
 }
+
+function decodeState(hash) {
+  try {
+    const json = atob(hash);
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
+// --- Color helpers ---
 
 const DEFAULT_COLORS = [
   '#ff6600', '#3b82f6', '#10b981', '#f59e0b',
@@ -39,13 +50,13 @@ applyThemeToDocument(currentTheme);
 
 // --- State ---
 
-const profiles = new Map(); // id -> { profile, colorHex }
-const profileOrder = [];    // id[] — rendering & stacking order
+const profiles = new Map();
+const profileOrder = [];
 let activeProfileId = null;
 let chart = null;
 let colorIndex = 0;
 let draggedProfileId = null;
-const expandedDims = new Set(); // dimension indices currently expanded
+const expandedDims = new Set();
 
 // --- DOM refs ---
 
@@ -55,6 +66,7 @@ const dimensionPanelEl = document.getElementById('dimension-panel');
 const btnAddProfile = document.getElementById('btn-add-profile');
 const btnShare = document.getElementById('btn-share');
 const btnExport = document.getElementById('btn-export');
+const btnEmbed = document.getElementById('btn-embed');
 const btnTheme = document.getElementById('btn-theme');
 const sidebarToggle = document.getElementById('sidebar-toggle');
 const sidebar = document.getElementById('sidebar');
@@ -96,7 +108,6 @@ function nextColor() {
       return c;
     }
   }
-  // All palette colors in use — cycle anyway
   const c = DEFAULT_COLORS[colorIndex % DEFAULT_COLORS.length];
   colorIndex++;
   return c;
@@ -390,15 +401,6 @@ function encodeState() {
   return btoa(JSON.stringify(data));
 }
 
-function decodeState(hash) {
-  try {
-    const json = atob(hash);
-    return JSON.parse(json);
-  } catch {
-    return null;
-  }
-}
-
 function updateHash() {
   if (profiles.size === 0) {
     history.replaceState(null, '', location.pathname + location.search);
@@ -474,6 +476,72 @@ sidebarToggle.addEventListener('click', () => {
 
 sidebarBackdrop.addEventListener('click', closeSidebar);
 
+// --- Embed dialog ---
+
+const embedDialog = document.getElementById('embed-dialog');
+const embedBackdrop = document.getElementById('embed-backdrop');
+const embedClose = document.getElementById('embed-close');
+const embedTheme = document.getElementById('embed-theme');
+const embedLabels = document.getElementById('embed-labels');
+const embedStep1 = document.getElementById('embed-step1');
+const embedStep2 = document.getElementById('embed-step2');
+
+const EMBED_SCRIPT_URL = 'https://cdn.jsdelivr.net/gh/ImmersiveExperienceDesignTaxonomy/chart@main/docs/embed.js';
+
+function generateScriptTag() {
+  return `<script src="${EMBED_SCRIPT_URL}"><\/script>`;
+}
+
+function generateDivTag() {
+  const theme = embedTheme.value;
+  const labels = embedLabels.checked;
+
+  const attrs = ['data-taxonomy-chart'];
+  if (profiles.size > 0) attrs.push(`data-state="${encodeState()}"`);
+  if (theme) attrs.push(`data-theme="${theme}"`);
+  if (labels) attrs.push('data-labels="true"');
+
+  return `<div ${attrs.join(' ')}\n     style="width:100%;height:500px"></div>`;
+}
+
+function updateSnippets() {
+  embedStep1.value = generateScriptTag();
+  embedStep2.value = generateDivTag();
+}
+
+function openEmbedDialog() {
+  updateSnippets();
+  embedDialog.classList.remove('hidden');
+}
+
+function closeEmbedDialog() {
+  embedDialog.classList.add('hidden');
+}
+
+btnEmbed.addEventListener('click', openEmbedDialog);
+embedClose.addEventListener('click', closeEmbedDialog);
+embedBackdrop.addEventListener('click', closeEmbedDialog);
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !embedDialog.classList.contains('hidden')) {
+    closeEmbedDialog();
+  }
+});
+
+embedTheme.addEventListener('change', updateSnippets);
+embedLabels.addEventListener('change', updateSnippets);
+
+embedDialog.addEventListener('click', (e) => {
+  const btn = e.target.closest('.embed-copy-btn');
+  if (!btn) return;
+  const target = document.getElementById(btn.dataset.target);
+  if (!target) return;
+  navigator.clipboard.writeText(target.value).then(
+    () => showToast('Copied to clipboard'),
+    () => showToast('Could not copy'),
+  );
+});
+
 // --- Event listeners ---
 
 btnAddProfile.addEventListener('click', () => {
@@ -504,17 +572,16 @@ function escapeHtml(str) {
 
 const restored = restoreFromHash();
 if (!restored) {
-  // Default profile demonstrates non-cumulative scoring with gaps between levels
   addProfile('Museum VR Tour', '#ff6600', [
-    [1, 3],       // Interactivity: Passive + Manipulative (skip Responsive)
-    [1, 2, 4],    // Embodiment: Visual Only + Partial Body + Full Sensory (skip Full Body)
-    [1],          // Co-Participation: Spectating only
-    [1, 2, 3],    // Story: Background + Linear + Branching
-    [2, 3],       // Dynamics: Reactive + Adaptive (skip Scripted)
-    [1, 3],       // Gamification: Points/Badges + Progression (skip Challenges)
-    [2, 3],       // Immersive Tech: Surround Screen + HMD 3DoF (skip Screen)
-    [1],          // Meta Control: Preset Selection
-    [1, 3, 4],    // Didactic Capacity: Informational + Constructivist + Transformative (skip Instructional)
-    [1, 2],       // Data: Identity + In-Game
+    [1, 3],
+    [1, 2, 4],
+    [1],
+    [1, 2, 3],
+    [2, 3],
+    [1, 3],
+    [2, 3],
+    [1],
+    [1, 3, 4],
+    [1, 2],
   ]);
 }
