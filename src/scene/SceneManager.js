@@ -42,7 +42,9 @@ export class SceneManager {
     this.controls.target.set(0, 0.3, 0);
     this.controls.minDistance = 4;
     this.controls.maxDistance = 25;
+    this._restoreCamera();
     this.controls.update();
+    this.controls.addEventListener('change', () => this._saveCamera());
 
     // Lighting
     createLighting(this.scene);
@@ -63,6 +65,24 @@ export class SceneManager {
    */
   onTick(fn) {
     this._animationCallbacks.push(fn);
+  }
+
+  _saveCamera() {
+    const data = {
+      pos: this.camera.position.toArray(),
+      target: this.controls.target.toArray(),
+    };
+    localStorage.setItem('cameraState', JSON.stringify(data));
+  }
+
+  _restoreCamera() {
+    const raw = localStorage.getItem('cameraState');
+    if (!raw) return;
+    try {
+      const { pos, target } = JSON.parse(raw);
+      this.camera.position.fromArray(pos);
+      this.controls.target.fromArray(target);
+    } catch { /* ignore corrupt data */ }
   }
 
   _onResize() {

@@ -1,14 +1,15 @@
 import * as THREE from 'three';
 import { createAllSegmentGeometries } from '../shapes/ShapeFactory.js';
-import { DIMENSION_COUNT } from '../data/TaxonomyDimensions.js';
+import { DIMENSION_COUNT, MAX_SCORE } from '../data/TaxonomyDimensions.js';
 
 const CROSSFADE_DURATION = 0.4;
-const WAVE_LAPS = 2;
-const WAVE_DURATION = 1.75 * WAVE_LAPS;
+const WAVE_DURATION = 1.75;
+const PAUSE_DURATION = 0.3;
 const SETTLE_DURATION = 1.5;
-const TOTAL_DURATION = WAVE_DURATION + SETTLE_DURATION;
+const TOTAL_DURATION = WAVE_DURATION + PAUSE_DURATION + SETTLE_DURATION;
 const WAVE_MAX_SCALE = 3.0;
 const BUMP_SPAN = 0.3;
+const RADIAL_SPREAD = 0.15;
 const DARK_COLOR = new THREE.Color(0x222222);
 
 function easeOutCubic(t) {
@@ -59,13 +60,13 @@ export class Animator {
         const elapsed = t * TOTAL_DURATION;
 
         if (elapsed <= WAVE_DURATION) {
-          const waveFront = (elapsed / WAVE_DURATION * WAVE_LAPS) % 1;
+          const waveExtent = 1 + RADIAL_SPREAD + BUMP_SPAN;
+          const waveFront = (elapsed / WAVE_DURATION) * waveExtent;
 
-          for (const { mesh, sector } of entries) {
+          for (const { mesh, sector, level } of entries) {
             const sectorPos = sector / DIMENSION_COUNT;
-            let dist = waveFront - sectorPos;
-            if (dist < -0.5) dist += 1;
-            if (dist > 0.5) dist -= 1;
+            const radialDelay = ((level - 1) / (MAX_SCORE - 1)) * RADIAL_SPREAD;
+            const dist = waveFront - sectorPos - radialDelay;
             const localT = dist / BUMP_SPAN + 0.5;
 
             if (localT > 0 && localT < 1) {
@@ -79,8 +80,14 @@ export class Animator {
               mesh.material.emissive.copy(DARK_COLOR);
             }
           }
+        } else if (elapsed <= WAVE_DURATION + PAUSE_DURATION) {
+          for (const { mesh } of entries) {
+            mesh.scale.z = 0;
+            mesh.material.color.copy(DARK_COLOR);
+            mesh.material.emissive.copy(DARK_COLOR);
+          }
         } else {
-          const settleT = easeOutCubic((elapsed - WAVE_DURATION) / SETTLE_DURATION);
+          const settleT = easeOutCubic((elapsed - WAVE_DURATION - PAUSE_DURATION) / SETTLE_DURATION);
           for (const { mesh, sector, level } of entries) {
             const needed = level <= targetScores[sector];
             if (needed) {
