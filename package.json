@@ -1,6 +1,6 @@
 {
   "name": "immersive-experience-design-taxonomy-chart",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "3D radar chart for the Immersive Experience Design Taxonomy (Ruscella & Obeid, iLRN 2021)",
   "license": "MIT",
   "type": "module",

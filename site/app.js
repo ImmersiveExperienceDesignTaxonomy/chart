@@ -486,7 +486,7 @@ const embedLabels = document.getElementById('embed-labels');
 const embedStep1 = document.getElementById('embed-step1');
 const embedStep2 = document.getElementById('embed-step2');
 
-const EMBED_SCRIPT_URL = 'https://cdn.jsdelivr.net/gh/ImmersiveExperienceDesignTaxonomy/chart@v0.1.0/docs/embed.js';
+const EMBED_SCRIPT_URL = 'https://cdn.jsdelivr.net/gh/ImmersiveExperienceDesignTaxonomy/chart@v1.0.0/docs/embed.js';
 
 function generateScriptTag() {
   return `<script src="${EMBED_SCRIPT_URL}"><\/script>`;
