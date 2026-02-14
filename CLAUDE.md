@@ -3,9 +3,11 @@
 ## Overview
 3D radar chart library (Three.js) for the Immersive Experience Design Taxonomy.
 Repo: `ImmersiveExperienceDesignTaxonomy/chart` (lowercase) on GitHub.
+Current version: **v1.0.0**
 
 ## Architecture
 - **Library**: `src/` — ES module exporting `TaxonomyChart`, `ExperienceProfile`, `TAXONOMY_DIMENSIONS`
+- **Embed widget**: `src/embed.js` — IIFE entry point for embedding charts on external pages
 - **Demo**: `index.html` + `demo/main.js` — minimal full-viewport demo
 - **Site**: `site/` — GitHub Pages Chart Builder (vanilla JS + Tailwind CDN)
 - **Build output**: `docs/` — built by `npm run build:site`, served by GitHub Pages from `main` branch
@@ -14,7 +16,8 @@ Repo: `ImmersiveExperienceDesignTaxonomy/chart` (lowercase) on GitHub.
 ## Key Files
 - `vite.config.js` — library build (ES module, Three.js external)
 - `vite.site.config.js` — site build (`base: '/chart/'`, `root: 'site'`, `outDir: '../docs'`)
-- `site/app.js` — all Chart Builder logic (~400 lines, vanilla JS)
+- `vite.embed.config.js` — embed build (IIFE, Three.js bundled, output `docs/embed.js`)
+- `site/app.js` — all Chart Builder logic (vanilla JS)
 - `site/public/chart-preview-v2.png` — copied to `docs/` on build (README references it)
 
 ## Chart Library API
@@ -42,9 +45,17 @@ Map insertion order isn't reorderable. A separate `profileOrder: number[]` array
 sidebar rendering and chart stacking order. Must be kept in sync with the profiles Map
 (push on add, splice on remove).
 
+## Embed Widget
+- `docs/embed.js` — self-contained IIFE with Three.js bundled
+- Served via jsDelivr CDN using tagged releases (e.g. `@v1.0.0`)
+- URL: `https://cdn.jsdelivr.net/gh/ImmersiveExperienceDesignTaxonomy/chart@v1.0.0/docs/embed.js`
+- Scans for `[data-taxonomy-chart]` divs, reads `data-state`, `data-theme`, `data-labels`
+- When bumping versions: update `package.json`, `EMBED_SCRIPT_URL` in `site/app.js`, rebuild, tag
+
 ## Build & Deploy
 - `npm run dev:site` — local dev server
-- `npm run build:site` — builds to `docs/` with `/chart/` base path
+- `npm run build:site` — builds site to `docs/` then embed to `docs/embed.js`
+- `npm run build:embed` — builds embed only
 - GitHub Pages: deploy from `main` branch, `/docs` folder
 - Site URL: `immersiveexperiencedesigntaxonomy.github.io/chart/`
 - **Do NOT run `npm run build` for testing** (per user preference in CLAUDE.md)
