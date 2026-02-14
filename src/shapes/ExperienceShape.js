@@ -21,10 +21,9 @@ export class ExperienceShape {
       color,
       emissive: color,
       emissiveIntensity: 0.25,
-      transparent: true,
-      opacity: 0.8,
+      transparent: false,
       side: THREE.DoubleSide,
-      depthWrite: false,
+      depthWrite: true,
       roughness: 0.4,
       metalness: 0.1,
     });
