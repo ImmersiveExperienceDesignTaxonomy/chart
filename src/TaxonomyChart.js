@@ -170,7 +170,7 @@ export class TaxonomyChart {
     const shape = new ExperienceShape(profile, this._profileCount);
     this._shapes.set(profile.id, shape);
     this._sceneManager.scene.add(shape.mesh);
-    this._animator.animateEntrance(shape.mesh);
+    this._animator.animateWaveEntrance(shape, profile.scores);
     this._profileCount++;
   }
 

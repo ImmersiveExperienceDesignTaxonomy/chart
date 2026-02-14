@@ -1,5 +1,15 @@
-const ENTRANCE_DURATION = 0.6; // seconds
+import * as THREE from 'three';
+import { createAllSegmentGeometries } from '../shapes/ShapeFactory.js';
+import { DIMENSION_COUNT } from '../data/TaxonomyDimensions.js';
+
 const CROSSFADE_DURATION = 0.4;
+const WAVE_LAPS = 2;
+const WAVE_DURATION = 1.75 * WAVE_LAPS;
+const SETTLE_DURATION = 1.5;
+const TOTAL_DURATION = WAVE_DURATION + SETTLE_DURATION;
+const WAVE_MAX_SCALE = 3.0;
+const BUMP_SPAN = 0.3;
+const DARK_COLOR = new THREE.Color(0x222222);
 
 function easeOutCubic(t) {
   return 1 - Math.pow(1 - t, 3);
@@ -13,17 +23,83 @@ export class Animator {
   }
 
   /**
-   * Scale-in entrance animation.
-   * @param {THREE.Mesh} mesh
+   * Stadium-wave entrance: a peak rotates around the chart one sector at a
+   * time, then needed segments rise to their final height.
+   * @param {import('../shapes/ExperienceShape.js').ExperienceShape} shape
+   * @param {number[]} targetScores
    */
-  animateEntrance(mesh) {
-    mesh.scale.set(0, 0, 0);
+  animateWaveEntrance(shape, targetScores) {
+    shape.mesh.visible = false;
+    const baseY = shape.mesh.position.y;
+    const parent = shape.mesh.parent;
+
+    const group = new THREE.Group();
+    const allSegments = createAllSegmentGeometries();
+    const profileColor = shape.mesh.material.color.clone();
+    const profileEmissive = shape.mesh.material.emissive.clone();
+
+    const entries = allSegments.map(({ geometry, sector, level }, idx) => {
+      const mat = shape.mesh.material.clone();
+      mat.color.copy(DARK_COLOR);
+      mat.emissive.copy(DARK_COLOR);
+      const mesh = new THREE.Mesh(geometry, mat);
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.position.y = baseY;
+      mesh.scale.z = 0;
+      group.add(mesh);
+      return { mesh, sector, level, idx };
+    });
+
+    parent.add(group);
+
     this._tweens.push({
       elapsed: 0,
-      duration: ENTRANCE_DURATION,
+      duration: TOTAL_DURATION,
       tick(t) {
-        const s = easeOutCubic(t);
-        mesh.scale.set(s, s, s);
+        const elapsed = t * TOTAL_DURATION;
+
+        if (elapsed <= WAVE_DURATION) {
+          const waveFront = (elapsed / WAVE_DURATION * WAVE_LAPS) % 1;
+
+          for (const { mesh, sector } of entries) {
+            const sectorPos = sector / DIMENSION_COUNT;
+            let dist = waveFront - sectorPos;
+            if (dist < -0.5) dist += 1;
+            if (dist > 0.5) dist -= 1;
+            const localT = dist / BUMP_SPAN + 0.5;
+
+            if (localT > 0 && localT < 1) {
+              const intensity = Math.sin(localT * Math.PI);
+              mesh.scale.z = WAVE_MAX_SCALE * intensity;
+              mesh.material.color.lerpColors(DARK_COLOR, profileColor, intensity);
+              mesh.material.emissive.lerpColors(DARK_COLOR, profileEmissive, intensity);
+            } else {
+              mesh.scale.z = 0;
+              mesh.material.color.copy(DARK_COLOR);
+              mesh.material.emissive.copy(DARK_COLOR);
+            }
+          }
+        } else {
+          const settleT = easeOutCubic((elapsed - WAVE_DURATION) / SETTLE_DURATION);
+          for (const { mesh, sector, level } of entries) {
+            const needed = level <= targetScores[sector];
+            if (needed) {
+              mesh.scale.z = settleT;
+              mesh.material.color.lerpColors(DARK_COLOR, profileColor, settleT);
+              mesh.material.emissive.lerpColors(DARK_COLOR, profileEmissive, settleT);
+            } else {
+              mesh.scale.z = 0;
+            }
+          }
+        }
+      },
+      onComplete() {
+        parent.remove(group);
+        for (const { mesh } of entries) {
+          mesh.geometry.dispose();
+          mesh.material.dispose();
+        }
+        shape.mesh.visible = true;
       },
     });
   }
