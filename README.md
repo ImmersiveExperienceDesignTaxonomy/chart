@@ -8,18 +8,20 @@ The chart renders a 10-sector decagon grid representing the taxonomy dimensions.
 
 ## Dimensions
 
-| # | Dimension | Levels (0 &rarr; 4) |
-|---|-----------|----------------------|
-| 1 | Interactivity | None &rarr; Passive &rarr; Responsive &rarr; Manipulative &rarr; Creative |
-| 2 | Embodiment | None &rarr; Visual Only &rarr; Partial Body &rarr; Full Body &rarr; Full Sensory |
-| 3 | Co-Participation | None &rarr; Spectating &rarr; Parallel &rarr; Cooperative &rarr; Collaborative |
-| 4 | Story | None &rarr; Background &rarr; Linear &rarr; Branching &rarr; Emergent |
-| 5 | Dynamics | Static &rarr; Scripted &rarr; Reactive &rarr; Adaptive &rarr; Procedural |
-| 6 | Gamification | None &rarr; Points/Badges &rarr; Challenges &rarr; Progression &rarr; Full Game |
-| 7 | Immersive Tech | Screen &rarr; Surround Screen &rarr; HMD (3DoF) &rarr; HMD (6DoF) &rarr; Multi-Sensory |
-| 8 | Meta Control | None &rarr; Preset Selection &rarr; Parameter Tuning &rarr; Scripting &rarr; Full Authoring |
-| 9 | Didactic Capacity | None &rarr; Informational &rarr; Instructional &rarr; Constructivist &rarr; Transformative |
-| 10 | Data | Anonymous &rarr; Identity &rarr; In-Game &rarr; Personalization &rarr; Biometrics |
+| # | Dimension | Baseline (0) | Level 1 | Level 2 | Level 3 | Level 4 |
+|---|-----------|-------------|---------|---------|---------|---------|
+| 1 | Interactivity | None | Passive | Responsive | Manipulative | Creative |
+| 2 | Embodiment | None | Visual Only | Partial Body | Full Body | Full Sensory |
+| 3 | Co-Participation | None | Spectating | Parallel | Cooperative | Collaborative |
+| 4 | Story | None | Background | Linear | Branching | Emergent |
+| 5 | Dynamics | Static | Scripted | Reactive | Adaptive | Procedural |
+| 6 | Gamification | None | Points/Badges | Challenges | Progression | Full Game |
+| 7 | Immersive Tech | Screen | Surround Screen | HMD (3DoF) | HMD (6DoF) | Multi-Sensory |
+| 8 | Meta Control | None | Preset Selection | Parameter Tuning | Scripting | Full Authoring |
+| 9 | Didactic Capacity | None | Informational | Instructional | Constructivist | Transformative |
+| 10 | Data | Anonymous | Identity | In-Game | Personalization | Biometrics |
+
+Levels 1–4 are independent and can be toggled individually. The baseline label is shown when no levels are active.
 
 ## Quick Start
 
