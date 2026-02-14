@@ -293,18 +293,22 @@ function renderDimensionPanel(id) {
       const checkboxList = document.createElement('div');
       checkboxList.className = 'flex flex-col gap-0.5 pl-10 pb-2 pr-4';
 
-      // Baseline (level 0) — read-only unchecked
+      // Baseline (level 0) — mutually exclusive with levels 1-4
+      const baselineActive = activeLevels.length === 0;
       const baselineLabel = document.createElement('label');
-      baselineLabel.className = 'level-checkbox flex items-center gap-2 py-0.5 opacity-60';
+      baselineLabel.className = 'level-checkbox flex items-center gap-2 cursor-pointer py-0.5';
       const baselineCheckbox = document.createElement('input');
       baselineCheckbox.type = 'checkbox';
-      baselineCheckbox.checked = false;
-      baselineCheckbox.disabled = true;
-      baselineCheckbox.className = 'shrink-0';
+      baselineCheckbox.checked = baselineActive;
+      baselineCheckbox.className = 'accent-current shrink-0';
+      baselineCheckbox.style.accentColor = colorHex;
       const baselineText = document.createElement('span');
       baselineText.className = 'text-xs';
-      baselineText.style.color = inactiveTextColor;
+      baselineText.style.color = baselineActive ? colorHex : inactiveTextColor;
       baselineText.textContent = dim.levels[0];
+      baselineCheckbox.addEventListener('change', () => {
+        clearDimension(id, d);
+      });
       baselineLabel.appendChild(baselineCheckbox);
       baselineLabel.appendChild(baselineText);
       checkboxList.appendChild(baselineLabel);
@@ -339,6 +343,16 @@ function renderDimensionPanel(id) {
 
     dimensionPanelEl.appendChild(row);
   }
+}
+
+function clearDimension(profileId, dimIndex) {
+  const entry = profiles.get(profileId);
+  if (!entry) return;
+
+  entry.profile.scores[dimIndex] = [];
+  chart.updateProfile(profileId, entry.profile.scores, hexToInt(entry.colorHex));
+  renderDimensionPanel(profileId);
+  updateHash();
 }
 
 function toggleLevel(profileId, dimIndex, level) {
