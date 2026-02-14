@@ -119,6 +119,9 @@ function renderProfileList() {
       <button class="rename-btn p-1 rounded hover:bg-gray-700 text-gray-400 hover:text-gray-200 transition-colors" title="Rename">
         <i class="fa-solid fa-pen text-xs"></i>
       </button>
+      <button class="dupe-btn p-1 rounded hover:bg-gray-700 text-gray-400 hover:text-gray-200 transition-colors" title="Duplicate">
+        <i class="fa-solid fa-clone text-xs"></i>
+      </button>
       <button class="delete-btn p-1 rounded hover:bg-gray-700 text-gray-400 hover:text-red-400 transition-colors" title="Delete">
         <i class="fa-solid fa-trash text-xs"></i>
       </button>
@@ -154,7 +157,7 @@ function renderProfileList() {
 
     // Selection
     item.addEventListener('click', (e) => {
-      if (e.target.closest('.delete-btn') || e.target.closest('.rename-btn') || e.target.closest('input[type="color"]') || e.target.closest('.drag-handle')) return;
+      if (e.target.closest('.delete-btn') || e.target.closest('.rename-btn') || e.target.closest('.dupe-btn') || e.target.closest('input[type="color"]') || e.target.closest('.drag-handle')) return;
       selectProfile(id);
     });
 
@@ -175,6 +178,11 @@ function renderProfileList() {
         renderProfileList();
         updateHash();
       }
+    });
+
+    item.querySelector('.dupe-btn').addEventListener('click', () => {
+      const scoresCopy = profile.scores.map((s) => [...s]);
+      addProfile(profile.name + ' (copy)', nextColor(), scoresCopy);
     });
 
     item.querySelector('.delete-btn').addEventListener('click', () => removeProfile(id));
