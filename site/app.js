@@ -25,6 +25,7 @@ let activeProfileId = null;
 let chart = null;
 let colorIndex = 0;
 let draggedProfileId = null;
+const expandedDims = new Set(); // dimension indices currently expanded
 
 // --- DOM refs ---
 
@@ -212,61 +213,74 @@ function renderDimensionPanel(id) {
     const dim = TAXONOMY_DIMENSIONS[d];
     const activeLevels = profile.scores[d];
 
-    const row = document.createElement('div');
-    row.className = 'px-4 py-2 border-b border-gray-800/50';
+    const isExpanded = expandedDims.has(d);
+    const activeCount = activeLevels.length;
 
-    const header = document.createElement('div');
-    header.className = 'flex items-center gap-2 mb-1.5';
+    const row = document.createElement('div');
+    row.className = 'border-b border-gray-800/50';
+
+    const header = document.createElement('button');
+    header.className = 'flex items-center gap-2 w-full px-4 py-2 hover:bg-gray-900/50 transition-colors';
     header.innerHTML = `
+      <i class="fa-solid fa-chevron-right text-[10px] text-gray-500 transition-transform ${isExpanded ? 'rotate-90' : ''}" style="width: 10px"></i>
       <i class="${dim.icon} text-xs text-gray-400 w-4 text-center"></i>
-      <span class="text-xs font-medium text-gray-300">${dim.name}</span>
+      <span class="text-xs font-medium text-gray-300 flex-1 text-left">${dim.name}</span>
+      <span class="text-[10px] text-gray-500">${activeCount}/${MAX_SCORE}</span>
     `;
+    header.addEventListener('click', () => {
+      if (expandedDims.has(d)) expandedDims.delete(d);
+      else expandedDims.add(d);
+      renderDimensionPanel(id);
+    });
     row.appendChild(header);
 
-    const checkboxList = document.createElement('div');
-    checkboxList.className = 'flex flex-col gap-0.5 pl-6';
+    if (isExpanded) {
+      const checkboxList = document.createElement('div');
+      checkboxList.className = 'flex flex-col gap-0.5 pl-10 pb-2 pr-4';
 
-    // Baseline (level 0) — read-only unchecked
-    const baselineLabel = document.createElement('label');
-    baselineLabel.className = 'level-checkbox flex items-center gap-2 py-0.5 opacity-60';
-    const baselineCheckbox = document.createElement('input');
-    baselineCheckbox.type = 'checkbox';
-    baselineCheckbox.checked = false;
-    baselineCheckbox.disabled = true;
-    baselineCheckbox.className = 'shrink-0';
-    const baselineText = document.createElement('span');
-    baselineText.className = 'text-xs text-gray-400';
-    baselineText.textContent = dim.levels[0];
-    baselineLabel.appendChild(baselineCheckbox);
-    baselineLabel.appendChild(baselineText);
-    checkboxList.appendChild(baselineLabel);
+      // Baseline (level 0) — read-only unchecked
+      const baselineLabel = document.createElement('label');
+      baselineLabel.className = 'level-checkbox flex items-center gap-2 py-0.5 opacity-60';
+      const baselineCheckbox = document.createElement('input');
+      baselineCheckbox.type = 'checkbox';
+      baselineCheckbox.checked = false;
+      baselineCheckbox.disabled = true;
+      baselineCheckbox.className = 'shrink-0';
+      const baselineText = document.createElement('span');
+      baselineText.className = 'text-xs text-gray-400';
+      baselineText.textContent = dim.levels[0];
+      baselineLabel.appendChild(baselineCheckbox);
+      baselineLabel.appendChild(baselineText);
+      checkboxList.appendChild(baselineLabel);
 
-    for (let l = 1; l <= MAX_SCORE; l++) {
-      const isActive = activeLevels.includes(l);
-      const label = document.createElement('label');
-      label.className = 'level-checkbox flex items-center gap-2 cursor-pointer py-0.5';
+      for (let l = 1; l <= MAX_SCORE; l++) {
+        const isActive = activeLevels.includes(l);
+        const label = document.createElement('label');
+        label.className = 'level-checkbox flex items-center gap-2 cursor-pointer py-0.5';
 
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.checked = isActive;
-      checkbox.className = 'accent-current shrink-0';
-      checkbox.style.accentColor = colorHex;
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = isActive;
+        checkbox.className = 'accent-current shrink-0';
+        checkbox.style.accentColor = colorHex;
 
-      const text = document.createElement('span');
-      text.className = 'text-xs';
-      text.style.color = isActive ? colorHex : '#9ca3af';
-      text.textContent = dim.levels[l];
+        const text = document.createElement('span');
+        text.className = 'text-xs';
+        text.style.color = isActive ? colorHex : '#9ca3af';
+        text.textContent = dim.levels[l];
 
-      checkbox.addEventListener('change', () => {
-        toggleLevel(id, d, l);
-      });
+        checkbox.addEventListener('change', () => {
+          toggleLevel(id, d, l);
+        });
 
-      label.appendChild(checkbox);
-      label.appendChild(text);
-      checkboxList.appendChild(label);
+        label.appendChild(checkbox);
+        label.appendChild(text);
+        checkboxList.appendChild(label);
+      }
+
+      row.appendChild(checkboxList);
     }
 
-    row.appendChild(checkboxList);
     dimensionPanelEl.appendChild(row);
   }
 }
