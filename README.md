@@ -1,6 +1,6 @@
 # Immersive Experience Design Taxonomy Chart
 
-A 3D radar chart for visualizing the **Immersive Experience Design Taxonomy** (Ruscella & Obeid, iLRN 2021). Built with [Three.js](https://threejs.org/).
+A 3D radar chart for visualizing the **[Immersive Experience Design Taxonomy](https://ieeexplore.ieee.org/document/9459328)** (Ruscella & Obeid, iLRN 2021). Built with [Three.js](https://threejs.org/).
 
 The chart renders a 10-axis decagon grid representing the taxonomy dimensions. Experience profiles are displayed as extruded polygonal shapes layered on the grid, with orbit camera controls and optional interactive score editing.
 
