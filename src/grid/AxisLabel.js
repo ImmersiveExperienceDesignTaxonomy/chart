@@ -30,7 +30,7 @@ export function createAxisLabels() {
     el.appendChild(text);
 
     const label = new CSS2DObject(el);
-    const { x, z } = polarToCartesian(i, labelRadius);
+    const { x, z } = polarToCartesian(i + 0.5, labelRadius);
     label.position.set(x, 0, z);
 
     return label;

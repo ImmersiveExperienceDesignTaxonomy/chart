@@ -15,17 +15,22 @@ const EXTRUDE_DEPTH = 0.15;
 export function createShapeGeometry(scores) {
   const shape = new THREE.Shape();
 
-  for (let i = 0; i <= DIMENSION_COUNT; i++) {
-    const idx = i % DIMENSION_COUNT;
-    const radius = Math.max(scores[idx], 0.05) * RADIUS_PER_LEVEL;
-    const { x, z } = polarToCartesian(idx, radius);
+  // Each sector emits two vertices at the same radius (its score) but at the
+  // two bounding spoke angles. Adjacent sectors with different scores create a
+  // radial step along the shared spoke (Nightingale / Coxcomb topology).
+  for (let i = 0; i < DIMENSION_COUNT; i++) {
+    const radius = Math.max(scores[i], 0.05) * RADIUS_PER_LEVEL;
+    const left = polarToCartesian(i, radius);
+    const right = polarToCartesian((i + 1) % DIMENSION_COUNT, radius);
+
     // Shape lives in XY; after -PI/2 rotation, local Y maps to world -Z.
     // Negate z so the rotated mesh aligns with the grid on the XZ plane.
     if (i === 0) {
-      shape.moveTo(x, -z);
+      shape.moveTo(left.x, -left.z);
     } else {
-      shape.lineTo(x, -z);
+      shape.lineTo(left.x, -left.z);
     }
+    shape.lineTo(right.x, -right.z);
   }
 
   return new THREE.ExtrudeGeometry(shape, {

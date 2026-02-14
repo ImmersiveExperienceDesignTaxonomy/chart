@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { DIMENSION_COUNT, MAX_SCORE } from '../data/TaxonomyDimensions.js';
-import { ANGLE_STEP } from '../utils/polar.js';
+import { MAX_SCORE } from '../data/TaxonomyDimensions.js';
+import { sectorFromAngle } from '../utils/polar.js';
 import { RADIUS_PER_LEVEL } from '../grid/RadarGrid.js';
 
 export class EditHandler {
@@ -22,7 +22,7 @@ export class EditHandler {
     this._intersection = new THREE.Vector3();
 
     this._dragging = false;
-    this._activeAxisIndex = -1;
+    this._activeSectorIndex = -1;
     this._workingScores = null;
 
     const dom = sceneManager.renderer.domElement;
@@ -49,37 +49,18 @@ export class EditHandler {
     return hit;
   }
 
-  _nearestAxisIndex(point) {
+  _sectorIndex(point) {
     const radialDist = Math.sqrt(point.x * point.x + point.z * point.z);
     const maxRadius = MAX_SCORE * RADIUS_PER_LEVEL;
     if (radialDist < RADIUS_PER_LEVEL * 0.4 || radialDist > maxRadius + RADIUS_PER_LEVEL) {
       return -1;
     }
-
-    const angle = Math.atan2(point.x, point.z);
-    const normalized = ((angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-    let best = 0;
-    let bestDiff = Infinity;
-
-    for (let i = 0; i < DIMENSION_COUNT; i++) {
-      const axisAng = i * ANGLE_STEP;
-      let diff = Math.abs(normalized - axisAng);
-      if (diff > Math.PI) diff = 2 * Math.PI - diff;
-      if (diff < bestDiff) {
-        bestDiff = diff;
-        best = i;
-      }
-    }
-
-    return bestDiff < ANGLE_STEP * 0.25 ? best : -1;
+    return sectorFromAngle(Math.atan2(point.x, point.z));
   }
 
-  _scoreFromDistance(point, axisIndex) {
-    const axisAng = axisIndex * ANGLE_STEP;
-    const dirX = Math.sin(axisAng);
-    const dirZ = Math.cos(axisAng);
-    const projection = point.x * dirX + point.z * dirZ;
-    const level = Math.round(projection / RADIUS_PER_LEVEL);
+  _scoreFromDistance(point) {
+    const radialDist = Math.sqrt(point.x * point.x + point.z * point.z);
+    const level = Math.round(radialDist / RADIUS_PER_LEVEL);
     return Math.max(0, Math.min(MAX_SCORE, level));
   }
 
@@ -93,19 +74,19 @@ export class EditHandler {
     const hit = this._intersectGround(ndc);
     if (!hit) return;
 
-    const axisIndex = this._nearestAxisIndex(hit);
-    if (axisIndex === -1) return;
+    const sectorIndex = this._sectorIndex(hit);
+    if (sectorIndex === -1) return;
 
     this._dragging = true;
-    this._activeAxisIndex = axisIndex;
+    this._activeSectorIndex = sectorIndex;
     this._workingScores = [...shape.profile.scores];
     this._sceneManager.controls.enabled = false;
     event.target.setPointerCapture(event.pointerId);
 
-    const score = this._scoreFromDistance(hit, axisIndex);
-    this._workingScores[axisIndex] = score;
+    const score = this._scoreFromDistance(hit);
+    this._workingScores[sectorIndex] = score;
     shape.rebuildGeometry(this._workingScores);
-    this._onDragStart?.(axisIndex, score);
+    this._onDragStart?.(sectorIndex, score);
   }
 
   _onPointerMove(event) {
@@ -118,12 +99,12 @@ export class EditHandler {
     const hit = this._intersectGround(ndc);
     if (!hit) return;
 
-    const score = this._scoreFromDistance(hit, this._activeAxisIndex);
-    if (score === this._workingScores[this._activeAxisIndex]) return;
+    const score = this._scoreFromDistance(hit);
+    if (score === this._workingScores[this._activeSectorIndex]) return;
 
-    this._workingScores[this._activeAxisIndex] = score;
+    this._workingScores[this._activeSectorIndex] = score;
     shape.rebuildGeometry(this._workingScores);
-    this._onDragUpdate?.(this._activeAxisIndex, score);
+    this._onDragUpdate?.(this._activeSectorIndex, score);
   }
 
   _onPointerUp() {
@@ -138,7 +119,7 @@ export class EditHandler {
       this._onScoreChange(shape.profile.id, [...this._workingScores]);
     }
 
-    this._activeAxisIndex = -1;
+    this._activeSectorIndex = -1;
     this._workingScores = null;
   }
 

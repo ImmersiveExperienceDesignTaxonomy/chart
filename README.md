@@ -2,7 +2,9 @@
 
 A 3D radar chart for visualizing the **[Immersive Experience Design Taxonomy](https://ieeexplore.ieee.org/document/9459328)** (Ruscella & Obeid, iLRN 2021). Built with [Three.js](https://threejs.org/).
 
-The chart renders a 10-axis decagon grid representing the taxonomy dimensions. Experience profiles are displayed as extruded polygonal shapes layered on the grid, with orbit camera controls and optional interactive score editing.
+![Chart preview showing a sector-fill (Nightingale) visualization of an experience profile](docs/chart-preview.png)
+
+The chart renders a 10-sector decagon grid representing the taxonomy dimensions. Experience profiles are displayed as extruded Nightingale (Coxcomb) shapes — each sector fills independently to its score radius, creating stepped transitions between dimensions. Includes orbit camera controls and optional interactive score editing.
 
 ## Dimensions
 
@@ -53,7 +55,7 @@ chart.addProfile(
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `showLabels` | `boolean` | `true` | Show dimension name text next to axis icons. Icons are always visible. |
-| `editable` | `boolean` | `false` | Enable click-drag on axis spokes to change scores interactively. |
+| `editable` | `boolean` | `false` | Enable click-drag within sectors to change scores interactively. |
 | `onChange` | `(id, scores) => void` | `null` | Callback fired when a score is changed via drag editing. |
 
 ### API
@@ -71,7 +73,7 @@ chart.addProfile(
 
 ### Interactive Editing
 
-When `editable` is true, click and drag along an axis spoke to set its score (snaps to integer levels 0-4). Orbit camera controls remain active for clicks between spokes and outside the grid area. A popover shows the dimension name and current level during hover and drag.
+When `editable` is true, click and drag within any sector to set its score (snaps to integer levels 0-4). Orbit camera controls remain active for clicks outside the grid area. A popover shows the dimension name and current level during hover and drag.
 
 ## Peer Dependencies
 

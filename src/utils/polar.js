@@ -26,3 +26,22 @@ export function polarToCartesian(index, radius) {
 export function axisAngle(index) {
   return index * ANGLE_STEP;
 }
+
+/**
+ * Returns the midpoint angle of sector `index` (halfway between two spokes).
+ * @param {number} index
+ * @returns {number}
+ */
+export function sectorMidAngle(index) {
+  return (index + 0.5) * ANGLE_STEP;
+}
+
+/**
+ * Returns the sector index (0 to DIMENSION_COUNT−1) that contains the given angle.
+ * @param {number} angle  Angle in radians (from atan2)
+ * @returns {number}
+ */
+export function sectorFromAngle(angle) {
+  const normalized = ((angle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  return Math.floor(normalized / ANGLE_STEP) % DIMENSION_COUNT;
+}
