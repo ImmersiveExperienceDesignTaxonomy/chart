@@ -1,5 +1,5 @@
 /**
- * The 10 dimensions of the Immersive Experience Design taxonomy.
+ * The 10 dimensions of the Immersive Experience Design Taxonomy.
  * Each dimension is scored 0–4.
  *
  * Source: Ruscella & Obeid, iLRN 2021 (extended).

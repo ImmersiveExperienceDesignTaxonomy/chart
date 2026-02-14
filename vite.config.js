@@ -4,8 +4,8 @@ export default defineConfig({
   build: {
     lib: {
       entry: 'src/index.js',
-      name: 'IEDTaxonomyChart',
-      fileName: 'ied-taxonomy-chart',
+      name: 'ImmersiveExperienceDesignTaxonomyChart',
+      fileName: 'immersive-experience-design-taxonomy-chart',
       formats: ['es'],
     },
     rollupOptions: {
