@@ -2,7 +2,7 @@
 
 A 3D radar chart for visualizing the **[Immersive Experience Design Taxonomy](https://ieeexplore.ieee.org/document/9459328)** (Ruscella & Obeid, iLRN 2021). Built with [Three.js](https://threejs.org/).
 
-![Chart preview showing a sector-fill (Nightingale) visualization of an experience profile](docs/chart-preview.png)
+![Chart preview showing a sector-fill (Nightingale) visualization of an experience profile](docs/chart-preview-v2.png)
 
 The chart renders a 10-sector decagon grid representing the taxonomy dimensions. Experience profiles are displayed as extruded Nightingale (Coxcomb) shapes — each cell within a sector can be toggled independently, allowing non-cumulative level selection. Includes orbit camera controls and interactive cell toggling.
 
