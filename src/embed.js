@@ -45,8 +45,9 @@ function initChart(container) {
     container.style.position = 'relative';
   }
 
-  // Apply background based on theme
+  // Apply background and font stack
   container.style.backgroundColor = theme === 'dark' ? '#030712' : '#ffffff';
+  container.style.fontFamily = 'system-ui, -apple-system, sans-serif';
 
   const chart = new TaxonomyChart(container, {
     showLabels,
