@@ -1,0 +1,27 @@
+{
+  "name": "ied-taxonomy-chart",
+  "version": "0.1.0",
+  "description": "3D radar chart for the Immersive Experience Design taxonomy (Ruscella & Obeid, iLRN 2021)",
+  "type": "module",
+  "main": "dist/ied-taxonomy-chart.js",
+  "module": "dist/ied-taxonomy-chart.js",
+  "exports": {
+    ".": "./dist/ied-taxonomy-chart.js"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "peerDependencies": {
+    "three": ">=0.150.0"
+  },
+  "devDependencies": {
+    "three": "^0.170.0",
+    "vite": "^6.0.0"
+  }
+}
