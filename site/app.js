@@ -122,6 +122,7 @@ function removeProfile(id) {
   chart.removeProfile(id);
   profiles.delete(id);
   profileOrder.splice(profileOrder.indexOf(id), 1);
+  chart.reorderProfiles(profileOrder);
   if (activeProfileId === id) {
     activeProfileId = profileOrder.length > 0 ? profileOrder[0] : null;
     if (activeProfileId != null) chart.setEditableProfile(activeProfileId);
