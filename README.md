@@ -112,7 +112,7 @@ npm run dev:site    # Local dev server
 npm run build:site  # Build to docs/ for GitHub Pages
 ```
 
-The site is served from the `docs/` directory on the `main` branch with a `/Chart/` base path.
+The site is served from the `docs/` directory on the `main` branch with a `/chart/` base path.
 
 ## Peer Dependencies
 
