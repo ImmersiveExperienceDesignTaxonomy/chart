@@ -4,7 +4,7 @@ A 3D radar chart for visualizing the **[Immersive Experience Design Taxonomy](ht
 
 ![Chart preview showing a sector-fill (Nightingale) visualization of an experience profile](docs/chart-preview.png)
 
-The chart renders a 10-sector decagon grid representing the taxonomy dimensions. Experience profiles are displayed as extruded Nightingale (Coxcomb) shapes — each sector fills independently to its score radius, creating stepped transitions between dimensions. Includes orbit camera controls and optional interactive score editing.
+The chart renders a 10-sector decagon grid representing the taxonomy dimensions. Experience profiles are displayed as extruded Nightingale (Coxcomb) shapes — each cell within a sector can be toggled independently, allowing non-cumulative level selection. Includes orbit camera controls and interactive cell toggling.
 
 ## Dimensions
 
@@ -36,18 +36,29 @@ Open the printed URL to see the demo.
 import { TaxonomyChart, ExperienceProfile } from 'immersive-experience-design-taxonomy-chart';
 
 const chart = new TaxonomyChart(document.getElementById('chart'), {
-  showLabels: true,   // show dimension names next to icons (default: true)
-  editable: true,     // allow click-drag on axes to set scores
+  showLabels: true,
+  editable: true,
   onChange: (id, scores) => console.log(id, scores),
 });
 
 chart.addProfile(
   new ExperienceProfile({
     name: 'Museum VR Tour',
-    scores: [2, 3, 1, 3, 1, 1, 3, 1, 4, 1], // one per dimension, 0-4
+    // Each entry is a sorted array of active levels (1-4) for that dimension.
+    // An empty array [] means no levels active; [1, 3] means levels 1 and 3 active.
+    scores: [[1, 2], [1, 2, 3], [1], [1, 2, 3], [1], [1], [1, 2, 3], [1], [1, 2, 3, 4], [1]],
     color: 0xff6600,
   }),
 );
+```
+
+Legacy cumulative integer scores are also accepted and auto-expanded (e.g., `3` becomes `[1, 2, 3]`):
+
+```js
+new ExperienceProfile({
+  name: 'Legacy Format',
+  scores: [2, 3, 1, 3, 1, 1, 3, 1, 4, 1],
+});
 ```
 
 ### Options
@@ -55,8 +66,8 @@ chart.addProfile(
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `showLabels` | `boolean` | `true` | Show dimension name text next to axis icons. Icons are always visible. |
-| `editable` | `boolean` | `false` | Enable click-drag within sectors to change scores interactively. |
-| `onChange` | `(id, scores) => void` | `null` | Callback fired when a score is changed via drag editing. |
+| `editable` | `boolean` | `false` | Enable click-to-toggle individual cells. |
+| `onChange` | `(id, scores) => void` | `null` | Callback fired when a cell is toggled. Receives updated `number[][]` scores. |
 
 ### API
 
@@ -64,16 +75,30 @@ chart.addProfile(
 |-------------------|-------------|
 | `addProfile(profile)` | Add an `ExperienceProfile` to the chart. |
 | `removeProfile(id)` | Remove a profile by id (animated). |
-| `updateProfile(id, scores)` | Replace a profile's scores (crossfade animation). |
+| `updateProfile(id, scores)` | Replace a profile's scores (crossfade animation). Accepts either format. |
 | `clearProfiles()` | Remove all profiles. |
-| `chart.editable` | Get/set whether drag editing is enabled. |
+| `chart.editable` | Get/set whether click editing is enabled. |
 | `chart.showLabels` | Get/set label text visibility. Icons enlarge when labels are hidden. |
-| `setEditableProfile(id)` | Choose which profile responds to drag editing (defaults to first). |
+| `setEditableProfile(id)` | Choose which profile responds to click editing (defaults to first). |
 | `dispose()` | Tear down the chart and release resources. |
 
 ### Interactive Editing
 
-When `editable` is true, click and drag within any sector to set its score (snaps to integer levels 0-4). Orbit camera controls remain active for clicks outside the grid area. A popover shows the dimension name and current level during hover and drag.
+When `editable` is true, click any cell to toggle it on or off. Levels within a dimension are independent — e.g., you can activate level 3 without level 2. Ghost (inactive) cells show a subtle outline on hover so you can see where to click. Orbit camera controls remain active (dragging rotates the view; only short clicks toggle cells).
+
+### Score Format
+
+Scores are stored as `number[][]` — an array of 10 sorted arrays, one per dimension. Each inner array contains the active level numbers (1–4). For example:
+
+```
+[[1, 2], [1, 3], [], [1, 2, 3, 4], ...]
+```
+
+- `[1, 2]` — levels 1 and 2 are active
+- `[1, 3]` — levels 1 and 3 active (level 2 is not — non-cumulative)
+- `[]` — no levels active
+
+The `normalizeScores()` helper (also exported) converts between legacy integer format and the set-based format.
 
 ## Peer Dependencies
 

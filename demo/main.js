@@ -9,7 +9,7 @@ const chart = new TaxonomyChart(document.getElementById('chart'), {
 chart.addProfile(
   new ExperienceProfile({
     name: 'Museum VR Tour',
-    scores: [2, 3, 1, 3, 1, 1, 3, 1, 4, 1],
+    scores: [[1, 2], [1, 2, 3], [1], [1, 2, 3], [1], [1], [1, 2, 3], [1], [1, 2, 3, 4], [1]],
     color: 0xff6600,
   }),
 );

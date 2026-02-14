@@ -27,7 +27,7 @@ export class Animator {
    * Stadium-wave entrance: a peak rotates around the chart one sector at a
    * time, then needed segments rise to their final height.
    * @param {import('../shapes/ExperienceShape.js').ExperienceShape} shape
-   * @param {number[]} targetScores
+   * @param {number[][]} targetScores
    */
   animateWaveEntrance(shape, targetScores) {
     shape.mesh.visible = false;
@@ -89,7 +89,7 @@ export class Animator {
         } else {
           const settleT = easeOutCubic((elapsed - WAVE_DURATION - PAUSE_DURATION) / SETTLE_DURATION);
           for (const { mesh, sector, level } of entries) {
-            const needed = level <= targetScores[sector];
+            const needed = targetScores[sector].includes(level);
             if (needed) {
               mesh.scale.z = settleT;
               mesh.material.color.lerpColors(DARK_COLOR, profileColor, settleT);
@@ -136,23 +136,32 @@ export class Animator {
    * @param {() => void} onComplete  Called when old group can be removed.
    */
   crossfade(oldGroup, newGroup, onComplete) {
-    const setGroupOpacity = (group, opacity) => {
+    const setActiveOpacity = (group, opacity) => {
       for (const child of group.children) {
+        if (!child.userData.active) continue;
         child.material.transparent = true;
         child.material.opacity = opacity;
       }
     };
-    setGroupOpacity(newGroup, 0);
+    setActiveOpacity(newGroup, 0);
 
     this._tweens.push({
       elapsed: 0,
       duration: CROSSFADE_DURATION,
       tick(t) {
         const e = easeOutCubic(t);
-        setGroupOpacity(oldGroup, 1 - e);
-        setGroupOpacity(newGroup, e);
+        setActiveOpacity(oldGroup, 1 - e);
+        setActiveOpacity(newGroup, e);
       },
-      onComplete,
+      onComplete() {
+        for (const child of newGroup.children) {
+          if (!child.userData.active) continue;
+          child.material.transparent = false;
+          child.material.opacity = 1;
+          child.material.depthWrite = true;
+        }
+        onComplete();
+      },
     });
   }
 

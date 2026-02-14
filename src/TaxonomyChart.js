@@ -3,18 +3,19 @@ import { SceneManager } from './scene/SceneManager.js';
 import { createRadarGrid } from './grid/RadarGrid.js';
 import { createAxisLabels } from './grid/AxisLabel.js';
 import { ExperienceProfile } from './data/ExperienceProfile.js';
-import { ExperienceShape } from './shapes/ExperienceShape.js';
+import { ExperienceShape, BASE_EMISSIVE_INTENSITY } from './shapes/ExperienceShape.js';
 import { Animator } from './animation/Animator.js';
 import { EditHandler } from './interaction/EditHandler.js';
-import { TAXONOMY_DIMENSIONS, MAX_SCORE } from './data/TaxonomyDimensions.js';
+import { TAXONOMY_DIMENSIONS } from './data/TaxonomyDimensions.js';
 import { paletteColor } from './utils/colors.js';
 
 const HOVER_EMISSIVE_BOOST = 0.45;
+const GHOST_HOVER_OPACITY = 0.15;
 
 export class TaxonomyChart {
   /**
    * @param {HTMLElement} container
-   * @param {{ showLabels?: boolean, editable?: boolean, onChange?: (id: number, scores: number[]) => void }} options
+   * @param {{ showLabels?: boolean, editable?: boolean, onChange?: (id: number, scores: number[][]) => void }} options
    */
   constructor(container, options = {}) {
     this._sceneManager = new SceneManager(container);
@@ -43,8 +44,8 @@ export class TaxonomyChart {
     this._labels.forEach((label, i) => {
       label.element.addEventListener('mouseenter', () => {
         const shape = this._getEditableShape();
-        const score = shape?.profile.scores[i] ?? null;
-        this._showPopover(i, score);
+        const activeLevels = shape?.profile.scores[i] ?? null;
+        this._showPopover(i, activeLevels);
       });
       label.element.addEventListener('mouseleave', () => this._hidePopover());
     });
@@ -123,12 +124,20 @@ export class TaxonomyChart {
     return el;
   }
 
-  _showPopover(axisIndex, score) {
+  /**
+   * @param {number} axisIndex
+   * @param {number[] | null} activeLevels  Sorted array of active level numbers, or null
+   */
+  _showPopover(axisIndex, activeLevels) {
     const dim = TAXONOMY_DIMENSIONS[axisIndex];
     const name = `<strong>${dim.name}</strong>`;
-    this._popoverEl.innerHTML = score != null
-      ? `${name}<br>${dim.levels[score]} (${score}/${MAX_SCORE})`
-      : name;
+
+    if (activeLevels && activeLevels.length > 0) {
+      const lines = activeLevels.map((l) => `${dim.levels[l]} (Level ${l})`);
+      this._popoverEl.innerHTML = `${name}<br>${lines.join('<br>')}`;
+    } else {
+      this._popoverEl.innerHTML = `${name}<br>${dim.levels[0]}`;
+    }
 
     const labelEl = this._labels[axisIndex].element;
     const labelRect = labelEl.getBoundingClientRect();
@@ -183,16 +192,30 @@ export class TaxonomyChart {
     const hitCellMesh = hits.length > 0 ? hits[0].object : null;
 
     if (hitCellMesh !== this._hoveredCellMesh) {
+      // Restore previous cell
       if (this._hoveredCellMesh) {
-        this._hoveredCellMesh.material.emissiveIntensity = 0.25;
+        const wasActive = this._hoveredCellMesh.userData.active;
+        if (wasActive) {
+          this._hoveredCellMesh.material.emissiveIntensity = BASE_EMISSIVE_INTENSITY;
+        } else {
+          this._hoveredCellMesh.material.opacity = 0;
+        }
       }
+
       this._hoveredCellMesh = hitCellMesh;
+
       if (hitCellMesh) {
-        hitCellMesh.material.emissiveIntensity = HOVER_EMISSIVE_BOOST;
-        const { sector, level } = hitCellMesh.userData;
+        const { sector, level, active } = hitCellMesh.userData;
+
+        if (active) {
+          hitCellMesh.material.emissiveIntensity = HOVER_EMISSIVE_BOOST;
+        } else {
+          hitCellMesh.material.opacity = GHOST_HOVER_OPACITY;
+        }
+
         const dim = TAXONOMY_DIMENSIONS[sector];
         this._cellTooltip.innerHTML =
-          `<strong>${dim.name}</strong><br>${dim.levels[level]}<br>Level ${level - 1}`;
+          `<strong>${dim.name}</strong><br>${dim.levels[level]}<br>Level ${level}`;
         this._cellTooltip.style.opacity = '1';
       } else {
         this._cellTooltip.style.opacity = '0';
@@ -212,11 +235,6 @@ export class TaxonomyChart {
       this._sceneManager,
       () => this._getEditableShape(),
       (id, scores) => this._onChange?.(id, scores),
-      {
-        onDragStart: (axis, score) => this._showPopover(axis, score),
-        onDragUpdate: (axis, score) => this._showPopover(axis, score),
-        onDragEnd: () => this._hidePopover(),
-      },
     );
   }
 
@@ -260,7 +278,7 @@ export class TaxonomyChart {
 
   /**
    * @param {number} id
-   * @param {number[]} newScores
+   * @param {number[][] | number[]} newScores
    */
   updateProfile(id, newScores) {
     const oldShape = this._shapes.get(id);
