@@ -62,6 +62,7 @@ export class TaxonomyChart {
     // Shape hover highlighting
     this._hoverRaycaster = new THREE.Raycaster();
     this._hoveredCellMesh = null;
+    this._cellTooltip = this._createCellTooltip();
     this._onShapeHover = this._onShapeHover.bind(this);
     this._sceneManager.renderer.domElement.addEventListener('pointermove', this._onShapeHover);
   }
@@ -146,8 +147,29 @@ export class TaxonomyChart {
     this._editableProfileId = id;
   }
 
+  _createCellTooltip() {
+    const el = document.createElement('div');
+    el.style.cssText = [
+      'position: absolute',
+      'background: rgba(0, 0, 0, 0.88)',
+      'color: #fff',
+      'padding: 6px 10px',
+      'border-radius: 4px',
+      'font-size: 12px',
+      'line-height: 1.4',
+      'pointer-events: none',
+      'white-space: nowrap',
+      'opacity: 0',
+      'transition: opacity 0.15s',
+      'z-index: 10',
+    ].join('; ');
+    this._sceneManager.container.appendChild(el);
+    return el;
+  }
+
   _onShapeHover(event) {
     const rect = this._sceneManager.renderer.domElement.getBoundingClientRect();
+    const containerRect = this._sceneManager.container.getBoundingClientRect();
     const ndc = new THREE.Vector2(
       ((event.clientX - rect.left) / rect.width) * 2 - 1,
       -((event.clientY - rect.top) / rect.height) * 2 + 1,
@@ -160,16 +182,28 @@ export class TaxonomyChart {
     const hits = this._hoverRaycaster.intersectObjects(groups, true);
     const hitCellMesh = hits.length > 0 ? hits[0].object : null;
 
-    if (hitCellMesh === this._hoveredCellMesh) return;
-
-    if (this._hoveredCellMesh) {
-      this._hoveredCellMesh.material.emissiveIntensity = 0.25;
-      this._hoveredCellMesh = null;
+    if (hitCellMesh !== this._hoveredCellMesh) {
+      if (this._hoveredCellMesh) {
+        this._hoveredCellMesh.material.emissiveIntensity = 0.25;
+      }
+      this._hoveredCellMesh = hitCellMesh;
+      if (hitCellMesh) {
+        hitCellMesh.material.emissiveIntensity = HOVER_EMISSIVE_BOOST;
+        const { sector, level } = hitCellMesh.userData;
+        const dim = TAXONOMY_DIMENSIONS[sector];
+        this._cellTooltip.innerHTML =
+          `<strong>${dim.name}</strong><br>${dim.levels[level]}<br>Level ${level - 1}`;
+        this._cellTooltip.style.opacity = '1';
+      } else {
+        this._cellTooltip.style.opacity = '0';
+      }
     }
 
-    if (hitCellMesh) {
-      hitCellMesh.material.emissiveIntensity = HOVER_EMISSIVE_BOOST;
-      this._hoveredCellMesh = hitCellMesh;
+    if (this._hoveredCellMesh) {
+      const x = event.clientX - containerRect.left + 12;
+      const y = event.clientY - containerRect.top - 12;
+      this._cellTooltip.style.left = `${x}px`;
+      this._cellTooltip.style.top = `${y}px`;
     }
   }
 
@@ -268,6 +302,7 @@ export class TaxonomyChart {
       this._editHandler = null;
     }
     this._popoverEl.remove();
+    this._cellTooltip.remove();
     this._sceneManager.dispose();
   }
 }
