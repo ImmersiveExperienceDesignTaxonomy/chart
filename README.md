@@ -120,4 +120,4 @@ The site is served from the `docs/` directory on the `main` branch with a `/char
 
 ## License
 
-See repository root.
+[MIT](LICENSE)
